@@ -1,48 +1,32 @@
-import { defaultSystem, VStack } from "@chakra-ui/react";
+import { defaultSystem,ChakraProvider, Box, Flex, VStack } from "@chakra-ui/react";
 import Header from "../Header";
 import Footer from "../Footer";
-
-import { ChakraProvider, Box, Flex,Stack } from "@chakra-ui/react";
-import AudioRecorder from "../homepage/RecordAudio";
-import UploadDemo from "../homepage/UploadAudio";
-import ModelSelect from "../homepage/ModelSelect";
+import ModelSubmit from "../homepage/ModelSelect";
+import AudioMethod from "../homepage/AudioMethod";
+import React, { useState } from "react";
 
 const HomePage = () => {
+  const [selectedModel, setSelectedModel] = useState('cnn');
+
   return (
     <ChakraProvider value={defaultSystem}>
-      <Flex direction="column" minH="100vh">
+ <Flex direction="column" minH="100vh">
+        {/* Header Section */}
         <Box as="header">
           <Header />
         </Box>
-        <Box as="main" flex="1">
-        <VStack align="center" spacing={4}>
-            <Box w="100%" maxW="800px">
-            <Flex
-                alignItems="center"
-                justify="center"
-                direction={{ base: "column", md: "row" }}
-                gap={6}
-                w="100%"
-            >
-                <UploadDemo />
-                <AudioRecorder />
-            </Flex>
-            </Box>
 
+        {/* Main Content */}
+        <Box as="main" flex="1">
+          <VStack align="center" spacing={4}>
+            <AudioMethod selectedModel={selectedModel}/>
             <Box w="100%" maxW="1000px">
-            <Flex
-                align="center"
-                justify="center"
-                w="100%"
-                h="auto"
-                p={0}
-                m={0}
-            >
-                <ModelSelect />
-            </Flex>
+                <ModelSubmit onModelChange={setSelectedModel} />
             </Box>
-        </VStack>
+          </VStack>
         </Box>
+
+        {/* Footer Section */}
         <Box as="footer">
           <Footer />
         </Box>
@@ -50,6 +34,5 @@ const HomePage = () => {
     </ChakraProvider>
   );
 };
-
 
 export default HomePage;

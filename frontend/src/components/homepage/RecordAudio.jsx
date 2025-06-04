@@ -1,19 +1,22 @@
 import React, { useRef, useState } from 'react';
 import { Box, Button, Flex, Text,List,ListItem } from '@chakra-ui/react';
 import { StopCircle, RecordFill } from 'react-bootstrap-icons';
-import RuleList from './ruleList';
+import RuleList from './RuleList';
+
 const recordRule = [
   'User must allow first microphone access from browsers ',
   'The maximum recording duration to be taken is 10 seconds',
   'This feature will be available for browsers with supported MediaRecorderAPI and WebAudioAPI',
 ]
 
-const AudioRecorder = () => {
-    const [recordedUrl, setRecordedUrl] = useState('');
+const AudioRecorder = ({ onRecordingStop }) => {
+ const [recordedUrl, setRecordedUrl] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const intervalRef = useRef(null);
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
+  const intervalRef = useRef(null);
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
   const chunks = useRef([]);
@@ -23,6 +26,7 @@ const AudioRecorder = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStream.current = stream;
       mediaRecorder.current = new MediaRecorder(stream);
+      chunks.current = [];
 
       mediaRecorder.current.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -30,27 +34,62 @@ const AudioRecorder = () => {
         }
       };
 
-      mediaRecorder.current.onstop = () => {
-        const recordedBlob = new Blob(chunks.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(recordedBlob);
-        setRecordedUrl(url);
-        chunks.current = [];
-      };
+      mediaRecorder.current.onstop = async () => {
+          const blob = new Blob(chunks.current, { type: 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          setRecordedUrl(url);
 
-    
+          const file = new File([blob], 'recorded_audio.webm', { type: 'audio/webm' });
+          if (onRecordingStop) {
+            onRecordingStop(file); // optional callback
+        };
+
+        // Auto upload to backend
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('source_type', 'record'); // Important: required by FastAPI
+          formData.append('model', 'cnn'); // Optional
+
+          try {
+          setIsUploading(true);
+          setUploadMessage('');
+          const response = await fetch('http://127.0.0.1:8000/', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const text = await response.text();
+
+
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch {
+              throw new Error("Failed to parse JSON from server");
+          }
+
+          console.log("Raw response:", text);
+
+
+          if (!response.ok) throw new Error(data.detail || 'Upload failed');
+          setIsUploading(false);
+          setUploadMessage(`Upload successful.`);
+        } catch (err) {
+          setIsUploading(false);
+          console.error(err)
+          setUploadMessage(`Error: ${err.message}`);
+        }
+      };
 
       mediaRecorder.current.start();
       setIsRecording(true);
       setElapsedTime(0);
 
-
-
       intervalRef.current = setInterval(() => {
         setElapsedTime((prev) => {
           if (prev >= 9) {
-            // Stop recording after 10 seconds
             stopRecording();
-            return prev; // stop updating elapsedTime after stop
+            return prev;
           }
           return prev + 1;
         });
@@ -60,7 +99,7 @@ const AudioRecorder = () => {
     }
   };
 
-     const stopRecording = () => {
+  const stopRecording = () => {
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.stop();
     }
@@ -91,16 +130,19 @@ const AudioRecorder = () => {
             Recording time: {elapsedTime}s
           </Text>
         )}
+        {recordedUrl && (
         <audio controls src={recordedUrl} style={{ width: '100%' }} />
+      )}
 
         <Flex gap={4}>
                    <Button
             size="sm"
             colorScheme="red"
             onClick={stopRecording}
-            backgroundColor="#D10524"
-            _hover={{ bg: '#941125FF' }}
-            isDisabled={!isRecording}
+            backgroundColor="red.500"
+            _hover={{ bg: 'red.600' }}
+            isDisabled={!isRecording || isUploading}
+            flex={1}
           >
             <StopCircle /> Stop
           </Button>
@@ -110,12 +152,19 @@ const AudioRecorder = () => {
             onClick={startRecording}
             backgroundColor="teal.500"
             _hover={{ bg: 'teal.600' }}
-            isDisabled={isRecording}
+            isDisabled={isRecording || isUploading}
+            flex={1}
           >
             <RecordFill /> Start
           </Button>
-
         </Flex>
+
+        {uploadMessage && (
+          <Text mt={3} fontSize="sm" color={uploadMessage.startsWith('Error') ? 'red.500' : 'green.600'}>
+            {uploadMessage}
+          </Text>
+        )}
+
       </Flex>
     </Box>
   );

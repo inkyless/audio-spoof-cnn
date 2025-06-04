@@ -2,7 +2,6 @@ import { Flex,Box,Button,Text, HStack, VStack } from "@chakra-ui/react";
 import React, { useState } from "react";
 import {Link} from "react-router-dom";    
 
-
 const ModelSelect = ({ selectedModel, onModelChange }) => {
   return (
  <HStack spacing={4}>
@@ -34,36 +33,15 @@ const ModelSelect = ({ selectedModel, onModelChange }) => {
   );
 }
 
-const submitButton = () =>{
-    return (
-          <Box w="100%">
-    <Button
-                as={Link}
-            to="/result"
-      width="100%"
-      colorScheme="teal"
-      size="lg"
-      backgroundColor= 'teal.500'
-            color= '#fff'
-            border= 'none'
-            padding= '0 1rem'
-            borderRadius= '4px'
-            cursor= 'pointer'
-            fontWeight= 'bold'
-            flex={4}
-            minW={"300px"}
-            _hover={{ color: 'white', backgroundColor: 'teal.600' }}
-
-    >
-      Submit
-    </Button>
-  </Box>
-
-    );
-}
-
-const ModelSubmit = () => {
+const ModelSubmit = ({ onModelChange }) => {
   const [selectedModel, setSelectedModel] = useState("cnn");
+
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
+    if (onModelChange) {
+      onModelChange(model);  // Notify parent
+    }
+  };
 
   return (
 <Flex
@@ -89,20 +67,19 @@ const ModelSubmit = () => {
         whiteSpace={{ base: "normal", md: "nowrap" }}
         textAlign={{ base: "center", md: "left" }}
       >
-        Model {selectedModel.toUpperCase()} selected
+        Model <strong>{selectedModel.toUpperCase()}</strong> selected
       </Text>
 
       <ModelSelect
         selectedModel={selectedModel}
-        onModelChange={setSelectedModel}
+        onModelChange={handleModelChange}
       />
 
       <Box
         w={{ base: "100%", md: "auto" }}
         flexGrow={{ base: 1, md: 0 }}
         flexShrink={0}
-      >
-        {submitButton()}
+      >        
       </Box>
     </Flex>
   </Box>
