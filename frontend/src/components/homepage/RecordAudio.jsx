@@ -51,29 +51,19 @@ const AudioRecorder = ({ onRecordingStop }) => {
           formData.append('model', 'cnn'); // Optional
 
           try {
-          setIsUploading(true);
-          setUploadMessage('');
-          const response = await fetch('http://127.0.0.1:8000/', {
-            method: 'POST',
-            body: formData,
+            setIsUploading(true);
+            setUploadMessage('');
+            const response = await fetch('/api/', {
+              method: 'POST',
+              body: formData,
           });
 
-          const text = await response.text();
+          const data = await response.text();
 
+           if (!response.ok) throw new Error(data.detail || 'Upload failed');
 
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch {
-              throw new Error("Failed to parse JSON from server");
-          }
-
-          console.log("Raw response:", text);
-
-
-          if (!response.ok) throw new Error(data.detail || 'Upload failed');
           setIsUploading(false);
-          setUploadMessage(`Upload successful.`);
+          console.log("Response Data:", data)
         } catch (err) {
           setIsUploading(false);
           console.error(err)

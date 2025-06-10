@@ -13,8 +13,10 @@ class DetectionResultCreate(BaseModel):
     is_spoof: Optional[bool]
     metric_score: Optional[float]
     model_use: str
+    image_filename: Optional[str] = None
 
 class UserFeedbackCreate(BaseModel):
+    session_id: str
     result_id: int
     feedback: bool
     time_submit: Optional[str] 

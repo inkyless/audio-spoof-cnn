@@ -7,8 +7,8 @@ dist/
 build/
 .env
 .env.*
-.venv/
-venv/
+# .venv/
+# venv/
 pip-wheel-metadata/
 .mypy_cache/
 .pytest_cache/
@@ -20,6 +20,7 @@ pip-wheel-metadata/
 # === Dataset ===
 dataset
 python_file
+backend/temp_audio
 
 # === Node / React ===
 frontend/node_modules/

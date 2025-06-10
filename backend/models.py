@@ -19,10 +19,11 @@ class AudioInteraction(Base):
 class DetectionResult(Base):
     __tablename__ = "DetectionResult"
     result_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    interaction_id = Column(Integer, ForeignKey("AudioInteraction.interaction_id", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
+    session_id = Column(String(255), ForeignKey("AudioInteraction.session_id", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
     is_spoof = Column(Boolean)
     metric_score = Column(Float)
     model_use = Column(String(50), nullable=False)
+    image_filename = Column(String(255), nullable=True)
     time_detect = Column(TIMESTAMP, server_default=func.current_timestamp())
 
     detection = relationship("AudioInteraction", back_populates="interactions")
@@ -32,6 +33,7 @@ class DetectionResult(Base):
 class UserFeedback(Base):
     __tablename__ = "UserFeedback"
     feedback_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    session_id = Column(String(255), ForeignKey("AudioInteraction.session_id", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
     result_id = Column(Integer, ForeignKey("DetectionResult.result_id", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
     feedback = Column(Boolean)
     time_submit = Column(TIMESTAMP,  server_default=func.current_timestamp())

@@ -8,7 +8,7 @@ const ModelSelect = ({ selectedModel, onModelChange }) => {
         <Button
           onClick={() => onModelChange('cnn')}
           bg={selectedModel === 'cnn' ? 'teal.500' : 'gray.400'}
-          color={selectedModel === 'cnn-lstm' ? 'white' : 'gray.800'}
+          color={selectedModel === 'cnn' ? 'white' : 'gray.800'}
           _hover={{ bg: selectedModel === 'cnn' ? 'teal.500' : 'teal.300' }}
           fontWeight={selectedModel === 'cnn' ? 'bold' : 'normal'}
           variant="solid"
@@ -20,7 +20,7 @@ const ModelSelect = ({ selectedModel, onModelChange }) => {
         <Button
           onClick={() => onModelChange('cnn-lstm')}
           bg={selectedModel === 'cnn-lstm' ? 'teal.500' : 'gray.400'}
-          color={selectedModel === 'cnn' ? 'white' : 'gray.800'}
+          color={selectedModel === 'cnn-lstm' ? 'white' : 'gray.800'}
           _hover={{ bg: selectedModel === 'cnn-lstm' ? 'teal.500' : 'teal.300' }}
           fontWeight={selectedModel === 'cnn-lstm' ? 'bold' : 'normal'}
           variant="solid"

@@ -32,7 +32,7 @@ const UploadAudio = ({ onFileSelected }) => {
 
   try {
     setIsUploading(true);
-    const response = await fetch('http://127.0.0.1:8000/', {
+    const response = await fetch('/api/', {
       method: 'POST',
       body: formData,
     });
