@@ -5,58 +5,70 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.env
-.env.*
-# .venv/
-# venv/
-pip-wheel-metadata/
+.cache/
 .mypy_cache/
 .pytest_cache/
-.coverage
-.cache/
 .dmypy.json
 .pyre/
+.coverage
+coverage.xml
+pytestdebug.log
+htmlcov/
+*.sqlite3
+*.db
+.venv/
+venv/
+.venv/Lib/site-packages/
+.venv/Lib/site-packages/_soundfile.py
+pip-wheel-metadata/
 
-# === Dataset ===
-dataset
-python_file
-backend/temp_audio
+# === Environment Variables ===
+.env
+.env.*
+.env.docker
 
-# === Node / React ===
+# === Datasets & Temp Files ===
+dataset/
+python_file/
+backend/temp_audio/
+
+# === Frontend (Node / React) ===
 frontend/node_modules/
 frontend/.env
 frontend/.env.*
 frontend/build/
 frontend/dist/
+node_modules/
+dist/
+dist-ssr/
+*.local
 
 # === Logs ===
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # === Docker ===
 *.pid
 *.tar
 docker-compose.override.yml
-.env.docker
-
-# === System files ===
-.DS_Store
-Thumbs.db
 
 # === IDEs and Editors ===
 .vscode/
+!.vscode/extensions.json
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.swp
 
-# === OS ===
+# === OS & Misc Files ===
+.DS_Store
+Thumbs.db
 *.bak
 *~
-
-# === Testing ===
-htmlcov/
-coverage.xml
-pytestdebug.log
-
-# === Misc ===
-*.sqlite3
-*.db
