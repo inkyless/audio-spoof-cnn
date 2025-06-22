@@ -3,6 +3,8 @@ import AudioRecorder from './RecordAudio';
 import UploadAudio from './UploadAudio';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Spinner } from '@chakra-ui/react';
+import { VStack } from '@chakra-ui/react';
 
 const SubmitButton = ({ onClick, disabled }) =>{
     return (
@@ -28,12 +30,17 @@ const SubmitButton = ({ onClick, disabled }) =>{
     );
 }
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
 const AudioMethod = ({selectedModel}) => {
   const [selectedFile, setSelectedFile] = useState(null); // latest audio input
   const [sourceType, setSourceType] = useState(null); // "upload" or "record"
   const [message, setMessage] = useState('');
   const [session_id, setSessionId] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
 
   const handleUpload = async (file, source) => {
     setMessage('');
@@ -44,9 +51,10 @@ const AudioMethod = ({selectedModel}) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('source_type', source);
+    formData.append('model', 'cnn'); //default
 
     try {
-      const res = await fetch('/api/', {
+      const res = await fetch(`${API_BASE}/`, {
         method: 'POST',
         body: formData,
       });
@@ -72,7 +80,8 @@ const AudioMethod = ({selectedModel}) => {
     handleUpload(file, 'record');
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!session_id) {
       setMessage('Please upload or record audio first.');
       return;
@@ -84,8 +93,11 @@ const AudioMethod = ({selectedModel}) => {
       formData.append('model', selectedModel); 
     }
 
+    setLoading(true);
+    setMessage('Model is predicting... Please wait.');
+
     try {
-      const res = await fetch('/api/predict', {
+      const res = await fetch(`${API_BASE}/predict`, {
         method: 'POST',
         body: formData,
       });
@@ -99,11 +111,12 @@ const AudioMethod = ({selectedModel}) => {
       if (!data.session_id) {
       throw new Error("Response missing session_id");
     }
-      console.log("Prediction Data : ",data)
-      navigate(`/result/${data.session_id}`);
       setMessage('Prediction submitted successfully. Redirecting to results...');
+      navigate(`/result/${data.session_id}`);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
+    } finally{
+      setLoading(false)
     }
   };
 
@@ -116,8 +129,8 @@ return (
         gap={6}
         w="100%"
       >
-        <UploadAudio onFileSelected={handleFileUpload} />
-        <AudioRecorder onRecordingStop={handleRecordingComplete} />
+        <UploadAudio onFileSelected={handleFileUpload} isUploading={isUploading}  />
+        <AudioRecorder onRecordingStop={handleRecordingComplete} isUploading={isUploading} />
       </Flex>
 
       <Box textAlign="center">
@@ -129,7 +142,14 @@ return (
 
          <SubmitButton onClick={handleSubmit}  disabled={session_id == null || session_id === ''} />
 
-        {message && (
+
+          {loading && (
+            <VStack mt={2}>
+              <Spinner size="lg" color="teal.500" />
+              <Text color="gray.600">{message}</Text>
+            </VStack>
+          )}
+        {!loading && message && (
           <Text mt={2} fontSize="sm" color={message.startsWith('Error') ? 'red.500' : 'green.600'}>
             {message}
           </Text>

@@ -10,49 +10,21 @@ const uploadRule = [
   'Ideal audio quality is 16kHz; minimum acceptable is 8kHz'
 ];
 
-const UploadAudio = ({ onFileSelected }) => {
+const UploadAudio = ({ onFileSelected, isUploading }) => {
   const [file, setFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const inputRef = useRef(null); 
-  const [message, setMessage] = useState('');
+  const inputRef = useRef(null);
 
-  const handleFileChange = async (event) => {
-    const selected  = event.target.files[0];
+  const handleFileChange = (event) => {
+    const selected = event.target.files[0];
     if (!selected) return;
 
     setFile(selected);
-    onFileSelected(selected);
-    setMessage('');
-  
-
-  const formData = new FormData();
-  formData.append('file', selected);
-  formData.append('source_type', 'upload'); 
-  formData.append('model', 'cnn'); // default
-
-  try {
-    setIsUploading(true);
-    const response = await fetch('/api/', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await response.json();
-    setIsUploading(false);
-
-    if (!response.ok) throw new Error(data.detail || 'Upload failed');
-    setMessage(`Upload successful: ${selected.name}`);
-    console.log('Response:', data);
-  } catch (err) {
-    setIsUploading(false);
-    setMessage(`Error: ${err.message}`);
-  }
-};
-
-  const handleButtonClick = () => {
-    inputRef.current.click(); 
+    onFileSelected(selected); // delegate to parent
   };
 
+  const handleButtonClick = () => {
+    inputRef.current.click();
+  };
 
   return (
     <Flex direction="column" align="center" gap={4}>
@@ -65,8 +37,8 @@ const UploadAudio = ({ onFileSelected }) => {
         maxW="400px"
         minH="320px"
         w="100%"
-        display="flex"             
-        flexDirection="column"   
+        display="flex"
+        flexDirection="column"
       >
         <Box flex="1">
           <RuleList rules={uploadRule} />
@@ -82,12 +54,13 @@ const UploadAudio = ({ onFileSelected }) => {
             _hover={{ borderColor: "teal.500" }}
             bg="white"
             size="sm"
-            width={"30%"}
-            flexShrink={0}  />
+            width="30%"
+            flexShrink={0}
+          />
 
-          {file && file.name && (
+          {file?.name && (
             <Text fontSize="sm" mt={2} color="gray.600" flex={1} marginBottom={2} isTruncated>
-               {file.name}
+              {file.name}
             </Text>
           )}
         </Flex>
@@ -99,19 +72,15 @@ const UploadAudio = ({ onFileSelected }) => {
             _hover={{ backgroundColor: 'teal.700' }}
             onClick={handleButtonClick}
             flexShrink={0}
-            width={'100%'}
+            width="100%"
             isDisabled={isUploading}
           >
-            {isUploading ? <Spinner size="sm" /> : <CloudUpload size={18} />}
+            {isUploading ? <Spinner size="sm" mr={2} /> : <CloudUpload size={18} />}
             {isUploading ? 'Uploading...' : 'Select File'}
           </Button>
         </Box>
 
-        {message && isUploading &&  (
-          <Text mt={3} fontSize="sm" color={message.startsWith("Error") ? "red.500" : "green.600"}>
-            {message}
-          </Text>
-        )}
+
       </Box>
     </Flex>
   );

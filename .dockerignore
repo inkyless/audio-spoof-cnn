@@ -1,0 +1,20 @@
+# Common
+*.pyc
+*.pyo
+__pycache__/
+.env
+.env.*
+.DS_Store
+*.db
+*.sqlite3
+
+# Node-specific
+node_modules/
+npm-debug.log
+dist/
+build/
+
+# Python-specific
+.venv/
+venv/
+*.egg-info/

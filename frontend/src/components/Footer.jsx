@@ -4,23 +4,22 @@ import { Github } from 'react-bootstrap-icons';
 
 const accounts = [
   {
-    url: 'https://github.com/MA-Ahmad/templateskart',
-    label: 'Github Account',
-    type: 'white',
+    url: 'https://github.com/inkyless/audio-spoof-cnn',
+    label: 'Github',
+    type: 'black',
     icon: <Github color='black'/>
   }
 ];
 
-const CustomLink = ({ children }) => {
+const CustomLink = ({ text }) => {
   return (
     <Link
-      href="#"
       fontSize="sm"
       fontWeight="medium"
       color="gray.600"
-      _hover={{ color: 'teal.600' }}
+      _hover={{color:"teal.600"}}
     >
-      {children}
+      {text}
     </Link>
   );
 };
@@ -35,14 +34,17 @@ const AccountLink = () => {
           href={account.url}
           target="_blank"
           aria-label={account.label}
-          icon={account.icon}
           variant="ghost"
+          colorPalette={account.type}
           _hover={{ bg: 'gray.200' }}
-          color={account.type === 'gray' ? 'gray.700' : undefined}                  
-          size="md"
-          isRound
-        />
+          color={account.type === 'gray.600' ? 'gray.700' : undefined}                  
+          size="lg"
+          rounded={"full"}
+        >
+          {account.icon}
+          </IconButton>
       ))}
+
     </Flex>
   );
 };
@@ -51,7 +53,7 @@ const AccountLink = () => {
 const Footer = () => {
   return (
     <Center px={4} bg="gray.50" flexDirection="row" py={2} gap={4} as={"footer"}>
-      <CustomLink>© 2023 Spoof or Not</CustomLink>
+      <CustomLink text={"© 2023 Spoof or Not"}></CustomLink>
       <AccountLink />
     </Center>
   );

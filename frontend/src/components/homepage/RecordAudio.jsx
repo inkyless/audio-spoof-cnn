@@ -9,12 +9,10 @@ const recordRule = [
   'This feature will be available for browsers with supported MediaRecorderAPI and WebAudioAPI',
 ]
 
-const AudioRecorder = ({ onRecordingStop }) => {
- const [recordedUrl, setRecordedUrl] = useState('');
+const AudioRecorder = ({ onRecordingStop, isUploading }) => {
+  const [recordedUrl, setRecordedUrl] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [uploadMessage, setUploadMessage] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
 
   const intervalRef = useRef(null);
   const mediaStream = useRef(null);
@@ -34,40 +32,16 @@ const AudioRecorder = ({ onRecordingStop }) => {
         }
       };
 
-      mediaRecorder.current.onstop = async () => {
-          const blob = new Blob(chunks.current, { type: 'audio/webm' });
-          const url = URL.createObjectURL(blob);
-          setRecordedUrl(url);
+      mediaRecorder.current.onstop = () => {
+        const blob = new Blob(chunks.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setRecordedUrl(url);
 
-          const file = new File([blob], 'recorded_audio.webm', { type: 'audio/webm' });
-          if (onRecordingStop) {
-            onRecordingStop(file); // optional callback
-        };
+        const file = new File([blob], 'recorded_audio.webm', { type: 'audio/webm' });
 
-        // Auto upload to backend
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('source_type', 'record'); // Important: required by FastAPI
-          formData.append('model', 'cnn'); // Optional
-
-          try {
-            setIsUploading(true);
-            setUploadMessage('');
-            const response = await fetch('/api/', {
-              method: 'POST',
-              body: formData,
-          });
-
-          const data = await response.text();
-
-           if (!response.ok) throw new Error(data.detail || 'Upload failed');
-
-          setIsUploading(false);
-          console.log("Response Data:", data)
-        } catch (err) {
-          setIsUploading(false);
-          console.error(err)
-          setUploadMessage(`Error: ${err.message}`);
+        // Pass to parent for upload
+        if (onRecordingStop) {
+          onRecordingStop(file);
         }
       };
 
@@ -90,12 +64,10 @@ const AudioRecorder = ({ onRecordingStop }) => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
+    if (mediaRecorder.current?.state === 'recording') {
       mediaRecorder.current.stop();
     }
-    if (mediaStream.current) {
-      mediaStream.current.getTracks().forEach((track) => track.stop());
-    }
+    mediaStream.current?.getTracks().forEach((track) => track.stop());
     setIsRecording(false);
     clearInterval(intervalRef.current);
   };
@@ -108,24 +80,24 @@ const AudioRecorder = ({ onRecordingStop }) => {
       boxShadow="md"
       bg="white"
       maxW="400px"
-        maxH="350px"
+      maxH="350px"
       w="100%"
-      className="upload-card"
     >
-      <Flex direction="column" align="center" gap={4} >
-
+      <Flex direction="column" align="center" gap={4}>
         <RuleList rules={recordRule} />
+
         {isRecording && (
           <Text fontSize="sm" color="gray.600">
             Recording time: {elapsedTime}s
           </Text>
         )}
+
         {recordedUrl && (
-        <audio controls src={recordedUrl} style={{ width: '100%' }} />
-      )}
+          <audio controls src={recordedUrl} style={{ width: '100%' }} />
+        )}
 
         <Flex gap={4}>
-                   <Button
+          <Button
             size="sm"
             colorScheme="red"
             onClick={stopRecording}
@@ -136,6 +108,7 @@ const AudioRecorder = ({ onRecordingStop }) => {
           >
             <StopCircle /> Stop
           </Button>
+
           <Button
             size="sm"
             colorScheme="teal"
@@ -148,12 +121,6 @@ const AudioRecorder = ({ onRecordingStop }) => {
             <RecordFill /> Start
           </Button>
         </Flex>
-
-        {uploadMessage && (
-          <Text mt={3} fontSize="sm" color={uploadMessage.startsWith('Error') ? 'red.500' : 'green.600'}>
-            {uploadMessage}
-          </Text>
-        )}
 
       </Flex>
     </Box>

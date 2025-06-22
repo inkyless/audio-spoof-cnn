@@ -1,0 +1,63 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  backend-test:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target : test
+    command: ["pytest", "-v","--disable-warnings", "--maxfail=1"]
+    container_name : backend_test
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - backend-test
+    restart: unless-stopped
+    env_file:
+    - ./backend/.env
+    command: >
+      dockerize -wait tcp://db:3306 -timeout 60s 
+      uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: react_frontend
+    restart : always
+    ports:
+      - "3000:3000"  
+    env_file:
+      - ./frontend/.env.production
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+  
+
+

@@ -1,6 +1,4 @@
-import os
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
 
 def npy_to_image(npy_path, image_path):

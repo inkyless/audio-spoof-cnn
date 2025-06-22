@@ -5,7 +5,7 @@ import {
   HandThumbsUpFill,
   ArrowClockwise,
 } from "react-bootstrap-icons";
-import axios from "axios";
+import { API_BASE } from "../../utils/config";
 
 // Props: result_id from the classified audio sample
 const Feedback = ({ session_id,result_id }) => {
@@ -13,39 +13,41 @@ const Feedback = ({ session_id,result_id }) => {
   const [visible, setVisible] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (isHelpful) => {
-    if (!result_id && !session_id) {
-      console.error("Error: result_id or session_id is missing, cannot submit feedback.");
+const handleSubmit = async (isHelpful) => {
+  if (!result_id || !session_id) {
+    console.error("Error: result_id or session_id is missing, cannot submit feedback.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("session_id", session_id);
+  formData.append("result_id", result_id);
+  formData.append("feedback", isHelpful);
+
+
+  try {
+    const response = await fetch(`${API_BASE}/feedback/`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("Fetch error:", {
+        status: response.status,
+        data: errorData,
+      });
       return;
     }
 
-    const formData = new FormData();
-    formData.append("session_id", session_id);
-    formData.append("result_id", result_id);
-    formData.append("feedback", isHelpful);
+    setFeedback(isHelpful ? "yes" : "no");
+    setSubmitted(true);
+    setVisible(true);
+  } catch (error) {
+    console.error("Unexpected error:", error.message || error);
+  }
+};
 
-    try {
-      await axios.post("/api/feedback", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-      setFeedback(isHelpful ? "yes" : "no");
-      setSubmitted(true);
-      setVisible(true);
-    } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Axios error:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-    } else {
-      console.error("Unexpected error:", error);
-    }
-  };
-}
 
   // Trigger fade-in animation when feedback changes
   useEffect(() => {
@@ -59,30 +61,35 @@ const Feedback = ({ session_id,result_id }) => {
   }, [submitted]);
 
   const handleUndo = async () => {
-    if (!result_id || !session_id) {
+  if (!result_id || !session_id) {
     console.error("Missing result_id or session_id for undo.");
     return;
   }
 
+  const queryParams = new URLSearchParams({
+    session_id: session_id,
+    result_id: result_id,
+  });
+
   try {
-    await axios.delete("/api/feedback", {
-      params: {
-        session_id: session_id,
-        result_id: result_id,
-      },
+    const response = await fetch(`/api/feedback?${queryParams.toString()}`, {
+      method: "DELETE",
     });
+
+    if (!response.ok) {
+      const errorData = await response?.json();
+      console.error("Failed to delete feedback:", errorData?.detail || "Unknown error");
+      return;
+    }
 
     setFeedback(null);
     setSubmitted(false);
     setVisible(false);
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Failed to delete feedback:", error.response?.data || error.message);
-    } else {
-      console.error("Unexpected error:", error);
-    }
+    console.error("Unexpected error:", error);
   }
-  };
+};
+
 
   const message =
     feedback === "yes" || feedback === "no"

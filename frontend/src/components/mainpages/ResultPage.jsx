@@ -7,6 +7,8 @@ import FullDisplay from "../resultpage/resultDisplay";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from '../../utils/config';
+
 
 const ResultPage = () => {
   const navigate = useNavigate();
@@ -16,13 +18,14 @@ const ResultPage = () => {
 
   useEffect(() => {
     if (!session_id) return;
-    fetch(`/api/result/${session_id}`)
+    fetch(`${API_BASE}/result/${session_id}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch result');
         return res.json();
       })
       .then(data => {
         if (data.detail) throw new Error(data.detail);
+        console.log("Prediction Data : ",data)
         setResult(data);
       })
       .catch(err => setError(err.message));
@@ -37,11 +40,9 @@ const ResultPage = () => {
     return <Spinner size="xl" />;
   }
 
-  const portUrl = "http://localhost:8000";
   const imageFilename = result.image_filename || 'https://via.placeholder.com/200x300.png?text=Image+Not+Available';
-  const imageUrl = `${portUrl}/api/output_images/${imageFilename}`;
+  const imageUrl = `${API_BASE}/api/output_images/${imageFilename}`;
 
-  
 
   const handleReturn = () => {
     navigate(-1); // Go back to the previous page

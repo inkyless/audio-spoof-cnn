@@ -1,20 +1,18 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException,Depends, status, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from fastapi import Query
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
-import models, schemas
+import models
 from pydub import AudioSegment
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 import os
 import uuid
 import io
-import shutil
 import numpy as np
+from fastapi.routing import APIRoute
+
 
 from preprocess_file.audio_to_npy import extract_mfcc
 from preprocess_file.npy_to_img import npy_to_image
@@ -33,15 +31,17 @@ os.makedirs(TEMP_AUDIO_DIR, exist_ok=True)
 os.makedirs(TEMP_OUTPUT_DIR, exist_ok=True)
 
 # Load Trained Model
-model_path_cnn = "model/cnn_model_8k.keras" # Temp
-model_path_lstm = "model/cnn_model_8k.keras" # Temp
+model_path_cnn = "model/cnn_model_16k.keras" # Temp
+model_path_lstm = "model/cnn_lstm_model_16k.keras" # Temp
 cnn_model = load_model(model_path_cnn) 
 lstm_model = load_model(model_path_lstm) # Temp
+print(type(cnn_model))
+print(type(lstm_model))
 
 # Allow React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # change if deployed
+    allow_origins=["http://localhost:3000", "http://frontend:3000"],  # change if deployed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,6 +56,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.on_event("startup")
+async def list_routes():
+    print("\nRegistered routes:")
+    for route in app.routes:
+        if isinstance(route, APIRoute):
+            print(f"{route.path} -> {route.name}")
 
 @app.get("/")
 def health_check():
@@ -77,7 +84,9 @@ async def upload_audio(
 
     # Save the uploaded file temporarily
     file_location = os.path.join(TEMP_AUDIO_DIR, filename)
+    print(f"File: {file.filename}, Content-Type: {file.content_type}")
     file_bytes = await file.read()
+    print(f"File size: {len(file_bytes)} bytes")
     with open(file_location, "wb") as f:
         f.write(file_bytes)
 
@@ -85,7 +94,8 @@ async def upload_audio(
     try:
         audio = AudioSegment.from_file(io.BytesIO(file_bytes))
         duration_seconds = len(audio) / 1000.0
-    except Exception:
+    except Exception as e:
+        print("AudioSegment error:", e)
         raise HTTPException(status_code=400, detail="Invalid audio format")
 
     # Store uploaded file or recordings in AudioInteraction Table
@@ -160,13 +170,21 @@ def classify_audio(
                 model_used = "CNN"
             elif model == "cnn-lstm":
                 clf = lstm_model
+                print(clf.input_shape)
                 mfcc_array = np.load(npy_path, allow_pickle=True)
+                print(mfcc_array.shape)
                 # Check shape and expand if needed
                 if len(mfcc_array.shape) == 2:
-                    mfcc_array = np.expand_dims(mfcc_array, axis=-1)  # (time, features, 1)
+                    mfcc_array = np.expand_dims(mfcc_array, axis=2)  # (time, features, 1)
+                    print(mfcc_array.shape)
+
                 if mfcc_array.shape[0] != 26:
                     mfcc_array = mfcc_array.T  # Transpose if needed to match (26, time)
                     mfcc_array = np.expand_dims(mfcc_array, axis=0)  # (1, 26, time, 1)
+                else:
+                    mfcc_array = np.expand_dims(mfcc_array, axis=0)
+                    print(mfcc_array.shape)
+                    
                 pred = clf.predict(mfcc_array)[0][0]
                 model_used = "CNN-LSTM"
             else:
