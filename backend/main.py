@@ -12,11 +12,15 @@ import uuid
 import io
 import numpy as np
 from fastapi.routing import APIRoute
+import tensorflow as tf
 
 
 from preprocess_file.audio_to_npy import extract_mfcc
 from preprocess_file.npy_to_img import npy_to_image
 from PIL import Image
+
+import builtins
+builtins.tf = tf 
 
 # Initialize database and create tables
 models.Base.metadata.create_all(bind=engine)
@@ -31,17 +35,18 @@ os.makedirs(TEMP_AUDIO_DIR, exist_ok=True)
 os.makedirs(TEMP_OUTPUT_DIR, exist_ok=True)
 
 # Load Trained Model
-model_path_cnn = "model/cnn_model_16k.keras" # Temp
-model_path_lstm = "model/cnn_lstm_model_16k.keras" # Temp
+model_path_cnn = "model/cnn_model_mixed_revised.keras" 
+model_path_lstm = "model/cnn_lstm_model_mixed_revised.keras" 
 cnn_model = load_model(model_path_cnn) 
-lstm_model = load_model(model_path_lstm) # Temp
-print(type(cnn_model))
-print(type(lstm_model))
+def reshape_lambda(x):
+    return tf.reshape(x, (tf.shape(x)[0], -1, 384))
+lstm_model = tf.keras.models.load_model(model_path_lstm,safe_mode=False, custom_objects={"<lambda>": reshape_lambda}) # Temp
+
 
 # Allow React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://frontend:3000"],  # change if deployed
+    allow_origins=["http://localhost:3000", "http://frontend:3000", "audio-spoof-cnn.com"],  # change if deployed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -190,7 +195,7 @@ def classify_audio(
             else:
                 raise HTTPException(status_code=400, detail="Invalid model selected")
             
-            is_spoof = pred > 0.5 # Value will be boolean
+            is_spoof = pred < 0.5 # Value will be boolean
             score = float(pred)
 
         except Exception as e:

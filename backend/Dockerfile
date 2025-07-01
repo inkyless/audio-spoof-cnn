@@ -21,6 +21,4 @@ RUN pip install --upgrade pip
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM base AS test
-CMD ["pytest -v"]
 

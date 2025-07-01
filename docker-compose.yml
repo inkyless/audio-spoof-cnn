@@ -1,4 +1,19 @@
 services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+
   db:
     image: mysql:8.0
     container_name: mysql_db
@@ -11,20 +26,6 @@ services:
     volumes:
       - ./mysql_data:/var/lib/mysql
 
-  backend-test:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target : test
-    command: ["pytest", "-v","--disable-warnings", "--maxfail=1"]
-    container_name : backend_test
-    environment:
-      - PYTHONPATH=/app
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - db
-
   backend:
     build:
       context: .
@@ -34,13 +35,14 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - backend-test
     restart: unless-stopped
     env_file:
     - ./backend/.env
     command: >
       dockerize -wait tcp://db:3306 -timeout 60s 
       uvicorn main:app --host 0.0.0.0 --port 8000
+    image : violalag/audio-spoof-cnn:backend-latest
+
 
 
   frontend:
@@ -55,9 +57,12 @@ services:
       - ./frontend/.env.production
     depends_on:
       - backend
+    image : violalag/audio-spoof-cnn:frontend-latest
 
 volumes:
   db_data:
+  caddy_data:
+  caddy_config:
   
 
 

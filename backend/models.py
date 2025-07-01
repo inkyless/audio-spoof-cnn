@@ -14,7 +14,8 @@ class AudioInteraction(Base):
     source_type = Column(String(20))
     time_created = Column(TIMESTAMP, server_default=func.current_timestamp())
 
-    interactions = relationship("DetectionResult", back_populates="detection")
+    detections = relationship("DetectionResult", back_populates="interaction")
+    feedbacks = relationship("UserFeedback", back_populates="interaction")
 
 class DetectionResult(Base):
     __tablename__ = "DetectionResult"
@@ -26,8 +27,8 @@ class DetectionResult(Base):
     image_filename = Column(String(255), nullable=True)
     time_detect = Column(TIMESTAMP, server_default=func.current_timestamp())
 
-    detection = relationship("AudioInteraction", back_populates="interactions")
-    feedbacks = relationship("UserFeedback", back_populates="interaction")
+    interaction = relationship("AudioInteraction", back_populates="detections")
+    feedbacks = relationship("UserFeedback", back_populates="detection")
 
 
 class UserFeedback(Base):
@@ -38,4 +39,5 @@ class UserFeedback(Base):
     feedback = Column(Boolean)
     time_submit = Column(TIMESTAMP,  server_default=func.current_timestamp())
 
-    interaction = relationship("DetectionResult", back_populates="feedbacks")
+    interaction = relationship("AudioInteraction", back_populates="feedbacks")
+    detection = relationship("DetectionResult", back_populates="feedbacks")

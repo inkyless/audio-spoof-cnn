@@ -8,13 +8,15 @@ from sqlalchemy.exc import OperationalError
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-username = os.getenv("SQL_USER", "root")
-sql_password = os.getenv("SQL_PASSWORD")
-sql_host = os.getenv("SQL_HOST", "localhost")
-sql_port = os.getenv("SQL_PORT", "3306")
-database_name = os.getenv("SQL_DATABASE", "myappdb")
+SQL_USER = os.getenv("SQL_USER")
+SQL_PASSWORD = os.getenv("SQL_PASSWORD")
+SQL_HOST = os.getenv("SQL_HOST")
+SQL_PORT = os.getenv("SQL_PORT")
+SQL_DATABASE = os.getenv("SQL_DATABASE")
 
-DATABASE_URL = f"mysql+pymysql://{username}:{sql_password}@{sql_host}:{sql_port}/{database_name}"
+DATABASE_URL = (
+    f"mysql+pymysql://{SQL_USER}:{SQL_PASSWORD}@{SQL_HOST}:{SQL_PORT}/{SQL_DATABASE}"
+)
 
 MAX_RETRIES = 10
 for attempt in range(MAX_RETRIES):

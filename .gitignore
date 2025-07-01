@@ -21,6 +21,8 @@ venv/
 .venv/Lib/site-packages/
 .venv/Lib/site-packages/_soundfile.py
 pip-wheel-metadata/
+Caddyfile
+duckdns/
 
 # === Environment Variables ===
 .env
@@ -74,3 +76,10 @@ Thumbs.db
 *~
 
 mysql_data
+
+# .dockerignore
+tests/
+*.test.*
+docker-compose.test.yml
+Dockerfile.test
+
