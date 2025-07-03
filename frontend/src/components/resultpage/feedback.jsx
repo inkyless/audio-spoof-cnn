@@ -66,13 +66,8 @@ const handleSubmit = async (isHelpful) => {
     return;
   }
 
-  const queryParams = new URLSearchParams({
-    session_id: session_id,
-    result_id: result_id,
-  });
-
   try {
-    const response = await fetch(`/api/feedback?${queryParams.toString()}`, {
+    const response = await fetch(`${API_BASE}/feedback/${session_id}`, {
       method: "DELETE",
     });
 

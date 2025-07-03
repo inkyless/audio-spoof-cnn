@@ -17,6 +17,7 @@ import tensorflow as tf
 
 from preprocess_file.audio_to_npy import extract_mfcc
 from preprocess_file.npy_to_img import npy_to_image
+from preprocess_file.npy_visualization import generate_mfcc_image
 from PIL import Image
 
 import builtins
@@ -145,16 +146,19 @@ def classify_audio(
         generated_session_id = interaction.session_id
         # When submitting, run preprocessing: MFCC extraction and image generation
         png_filename = f"{generated_session_id}.png"
+        png_grayscale = f"{generated_session_id}_grayscale.png"
         npy_path = os.path.join(TEMP_OUTPUT_DIR, f"{generated_session_id}.npy")
         png_path = os.path.join(TEMP_OUTPUT_DIR,png_filename)
+        png_path_grayscale = os.path.join(TEMP_OUTPUT_DIR,png_grayscale)
 
         if not os.path.exists(npy_path):
             try:
                 mfcc = extract_mfcc(file_path, npy_path)
                 np.save(npy_path, mfcc)
-                npy_to_image(npy_path, png_path)
-                if os.path.exists(png_path):
-                    print(f"Image saved at {png_path}")
+                generate_mfcc_image(npy_path, png_path)  
+                npy_to_image(npy_path, png_path_grayscale)
+                if os.path.exists(png_path) and os.path.exists(png_path_grayscale):
+                    print(f"Image saved successfully at {png_path} and {png_path_grayscale}")
                 else:
                     raise HTTPException(status_code=500, detail="Image file not created")
                 print("Successfully NPY file convert to image file....")
@@ -165,7 +169,7 @@ def classify_audio(
         try:
             if model == "cnn":
                 clf = cnn_model
-                image = Image.open(png_path).convert("L")  # grayscale
+                image = Image.open(png_path_grayscale).convert("L")  # grayscale
                 image = image.resize((26, image.height))  # keep time dim variable
                 image_array = np.array(image).astype(np.float32)
                 image_array = image_array / 255.0  # normalize
@@ -276,17 +280,15 @@ def create_feedback(
         raise HTTPException(status_code=500, detail=f"Failed to record feedback: {str(e)}")
 
 
-@app.delete("/feedback")
+@app.delete("/feedback/{session_id}")
 def delete_feedback(
-    session_id: str = Query(...),
-    result_id: int = Query(...),
+    session_id: str,
     db: Session = Depends(get_db)
 ):    
     # Check if the feedback already exists
     try:
         existing = db.query(models.UserFeedback).filter_by(
             session_id=session_id,
-            result_id=result_id
         ).first()
 
         if not existing:

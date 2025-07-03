@@ -19,6 +19,6 @@ RUN apt-get install -y ffmpeg gcc libffi-dev libssl-dev && apt-get clean && rm -
 RUN pip install --upgrade pip
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 

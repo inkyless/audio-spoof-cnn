@@ -28,7 +28,6 @@ def load_audio(file_path, target_sr=None, output_path=None):
 def extract_mfcc(audio_path, output_path, n_mfcc=40, target_sr=16000):
     try:
         y,sr = load_audio(audio_path,target_sr=target_sr)
-        # Calculate suitable FFT size
         n_fft = min(512, 2 ** int(np.log2(len(y))))
 
         # Extract MFCC features

@@ -11,7 +11,7 @@ import pytest
 # Test when audio is loaded
 @pytest.fixture
 def test_audio_path():
-    path = "temp_audio/0d81bda0-d6f6-4fe1-8494-788ff658ad7e_recorded_audio.webm"
+    path = "temp_audio/0b3dbf61-43f0-4109-9b23-ab1810688abc_recorded_audio.webm"
     assert os.path.exists(path), f"Test file not found: {path}"
     return path
 
