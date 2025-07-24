@@ -3,15 +3,18 @@ import { Button, Input ,Box, Flex,Text, Spinner } from '@chakra-ui/react';
 import RuleList from './RuleList';
 import React, { useState, useRef } from 'react';
 
+
+
 const uploadRule = [
-  'Allowed formats: .wav, .mp3, .flac, .aac, .ogg, .m4a',
+  'Allowed formats: .wav, .mp3, .flac, .aac, .ogg, .m4a .webm',
   'Maximum file size: 5MB',
-  'Avoid background noise as much as possible when recording speech',
-  'Ideal audio quality is 16kHz; minimum acceptable is 8kHz'
+  'Avoid background noise as much as possible on the audio file',
+  'Ideal uploaded audio quality is 16kHz or higher;'
 ];
 
 const UploadAudio = ({ onFileSelected, isUploading }) => {
   const [file, setFile] = useState(null);
+  
   const inputRef = useRef(null);
 
   const handleFileChange = (event) => {
@@ -19,7 +22,7 @@ const UploadAudio = ({ onFileSelected, isUploading }) => {
     if (!selected) return;
 
     setFile(selected);
-    onFileSelected(selected); // delegate to parent
+    onFileSelected(selected);
   };
 
   const handleButtonClick = () => {

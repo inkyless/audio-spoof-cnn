@@ -100,6 +100,8 @@ async def upload_audio(
     try:
         audio = AudioSegment.from_file(io.BytesIO(file_bytes))
         duration_seconds = len(audio) / 1000.0
+        sample_rate_hz = audio.frame_rate
+        sample_rate_khz = round(sample_rate_hz / 1000, 2)
     except Exception as e:
         print("AudioSegment error:", e)
         raise HTTPException(status_code=400, detail="Invalid audio format")
@@ -121,6 +123,7 @@ async def upload_audio(
         "filename": filename,
         "duration":duration_seconds,
         "session_id": generated_session_id,
+        "sample_rate_khz": sample_rate_khz,
     }
 
 @app.get("/predict")

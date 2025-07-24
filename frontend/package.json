@@ -21,7 +21,8 @@
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.1.0",
     "react-media-recorder": "^1.7.1",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "react-tooltip": "^5.29.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.27.2",

@@ -17,7 +17,9 @@ def generate_mfcc_image(npy_path, image_path):
         fig, ax = plt.subplots()
         img = librosa.display.specshow(mfcc, x_axis='time', ax=ax)
         ax.set(title='MFCC Visualization')
-        plt.colorbar(img, ax=ax)
+        ax.set(xlabel='Time (Seconds)', ylabel='MFCC Coefficients (Decibles Scale)')
+        plt.colorbar(img, ax=ax, format='%+2.0f dB')
+        plt.tight_layout()
 
         # Save plot to buffer
         buf = io.BytesIO()

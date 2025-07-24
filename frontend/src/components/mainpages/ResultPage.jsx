@@ -9,8 +9,14 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from '../../utils/config';
 
-const Description = () => {
-const items = [
+const Description = ({ openValue, setOpenValue }) => {
+  console.log("[Description] received openValue:", openValue);
+  const normalizeValue = (val) => {
+    if (Array.isArray(val)) return val[0];
+    if (val && typeof val === "object" && val.value) return val.value[0];
+    return val;
+  };
+  const items = [
   {
     value: 'a',
     title: 'How to Describe The Image?',
@@ -29,9 +35,16 @@ const items = [
 ];
 
   return (
-    <Accordion.Root collapsible>
-      {items.map((item, index) => (
-        <AccordionItem key={index} value={item.value} variant={"plain"} maxWidth={"90%"} justifyContent={"center"} margin={"1em auto"} borderRadius="md" boxShadow="md" mb={4} >
+    <Accordion.Root collapsible value={openValue} type="single"
+     onValueChange={(val) => {
+        console.log("Before normalized value : ", val)
+        const normalized = normalizeValue(val);
+        console.log("After normalized value : ", val)
+        setOpenValue(normalized); 
+      }}>
+
+      {items.map((item) => (
+        <AccordionItem key={item.value} value={item.value} variant={"plain"} maxWidth={"90%"} justifyContent={"center"} margin={"1em auto"} borderRadius="md" boxShadow="md" mb={4} >
           <AccordionItemTrigger
             px={4}
             py={2}
@@ -63,6 +76,8 @@ const ResultPage = () => {
   const { session_id } = useParams();
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [openValue, setOpenValue] = useState(undefined);
+
 
   useEffect(() => {
     if (!session_id) return;
@@ -95,7 +110,6 @@ const ResultPage = () => {
   const handleReturn = () => {
     navigate(-1); // Go back to the previous page
   };
-
        return(
         <ChakraProvider value={defaultSystem}>  
           <Flex direction="column" minH="100vh">
@@ -117,8 +131,8 @@ const ResultPage = () => {
             </Button>
             </Box>
             <Box as="main" flex="1" >
-              {result ? <FullDisplay result={result} imageUrl={imageUrl} /> : <p>Loading...</p>}
-            <Description />
+              {result ? <FullDisplay result={result} imageUrl={imageUrl} setOpenValue={setOpenValue} /> : <p>Loading...</p>}
+            <Description openValue={openValue} setOpenValue={setOpenValue} />
 
               <Feedback  session_id={result.session_id} result_id={result.result_id} />
             </Box>

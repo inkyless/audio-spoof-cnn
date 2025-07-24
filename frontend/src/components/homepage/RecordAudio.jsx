@@ -6,6 +6,7 @@ import RuleList from './RuleList';
 const recordRule = [
   'User must allow first microphone access from browsers ',
   'The maximum recording duration to be taken is 10 seconds',
+  'Avoid background noise as much as possible when recording speech',
   'This feature will be available for browsers with supported MediaRecorderAPI and WebAudioAPI',
 ]
 

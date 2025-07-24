@@ -1,4 +1,4 @@
-import { Box, Flex, Button, Text} from '@chakra-ui/react';   
+import { Box, Flex, Button, Text, HStack} from '@chakra-ui/react';   
 import AudioRecorder from './RecordAudio';
 import UploadAudio from './UploadAudio';
 import React, { useState } from 'react';
@@ -39,12 +39,26 @@ const AudioMethod = ({selectedModel}) => {
   const [session_id, setSessionId] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [duration, setDuration] = useState(null);
+  const [sampleRate, setSampleRate] = useState(null);
   const navigate = useNavigate();
 
 
   const handleUpload = async (file, source) => {
     setMessage('');
     setSessionId(null);
+    setSelectedFile(null); // reset previous
+    setSourceType(null);
+
+
+    const MAX_SIZE_MB = 5;  
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+    if (file.size > MAX_SIZE_BYTES) {
+      setMessage(`Error: File exceeds the ${MAX_SIZE_MB}MB size limit.`);
+      return;
+    }
+
     setSelectedFile(file);
     setSourceType(source);
 
@@ -64,7 +78,11 @@ const AudioMethod = ({selectedModel}) => {
       if (!res.ok) throw new Error(data.detail || 'Upload failed');
 
       setSessionId(data.session_id);
+      setDuration(data.duration);
+      setSampleRate(data.sample_rate_khz);
       console.log('Session ID:', data.session_id);
+      console.log('Duration:', data.duration);
+      console.log('Sample Rate:', data.sample_rate_khz);
       setMessage('Audio uploaded successfully.');
     } catch (err) {
       setMessage(`Error uploading audio: ${err.message}`);
@@ -143,17 +161,33 @@ return (
          <SubmitButton onClick={handleSubmit}  disabled={session_id == null || session_id === ''} />
 
 
-          {loading && (
-            <VStack mt={2}>
-              <Spinner size="lg" color="teal.500" />
-              <Text color="gray.600">{message}</Text>
-            </VStack>
+            {loading && (
+              <Flex mt={4} justify="center" w="100%">
+                <HStack align="center">
+                  <Spinner size="lg" color="teal.500" />
+                  <Text color="gray.600">{message}</Text>
+                </HStack>
+              </Flex>
+            )}
+          {!loading && message && (
+            <Flex
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+              gap={4}
+              mt={2}
+            >
+              <Text fontSize="sm" color={message.startsWith('Error') ? 'red.500' : 'green.500'}>
+                {message}
+              </Text>
+
+              {duration && sampleRate && (
+                <Text fontSize="sm" color="green.700">
+                  Duration: {duration.toFixed(2)}s — Sample Rate: {sampleRate.toFixed(2)} kHz
+                </Text>
+              )}
+            </Flex>
           )}
-        {!loading && message && (
-          <Text mt={2} fontSize="sm" color={message.startsWith('Error') ? 'red.500' : 'green.600'}>
-            {message}
-          </Text>
-        )}
       </Box>
     </Box>
   );
